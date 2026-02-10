@@ -9,8 +9,8 @@ import CaptionLogin from './pages/captionLogin'
 import CaptionSign from './pages/captionSign'
 import UserProtectWrapper from './pages/UserProtectWrapper'
 import Userlogout from './pages/Userlogout'
-
 import CaptionHome from './pages/captionHome'
+import CaptionProtectWrapper from './pages/captionProtectedWrapper'
 
 const App = () => {
   return (
@@ -32,7 +32,10 @@ const App = () => {
             </UserProtectWrapper>
         } />
 
-        <Route path='/caption-home' element={<CaptionHome />} />
+        <Route path='/caption-home' element={<CaptionProtectWrapper>
+        <CaptionHome />
+          </CaptionProtectWrapper>
+        } />
       </Routes>
     </BrowserRouter>
   )
