@@ -7,7 +7,7 @@ const VehiclePanel = ({ Setcurentpanel }) => {
       id: 1,
       name: "UberGo",
       image:
-        "https://res.cloudinary.com/dazyc9p6r/image/upload/v1707562000/uber-car_p9z3oa.png",
+        "https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=552/height=368/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy82NDkzYzI1NS04N2M4LTRlMmUtOTQyOS1jZjcwOWJmMWI4MzgucG5n",
       price: "₹193.20",
       time: "2 mins away • 15:24",
       desc: "Affordable, compact rides",
@@ -17,7 +17,7 @@ const VehiclePanel = ({ Setcurentpanel }) => {
       id: 2,
       name: "Moto",
       image:
-        "https://res.cloudinary.com/dazyc9p6r/image/upload/v1707562000/uber-moto_q8n3ob.png",
+        "https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=552/height=368/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy8yYzdmYTE5NC1jOTU0LTQ5YjItOWM2ZC1hM2I4NjAxMzcwZjUucG5n",
       price: "₹65.17",
       time: "3 mins away • 15:24",
       desc: "Affordable motorcycle rides",
@@ -27,7 +27,7 @@ const VehiclePanel = ({ Setcurentpanel }) => {
       id: 3,
       name: "UberAuto",
       image:
-        "https://res.cloudinary.com/dazyc9p6r/image/upload/v1707562000/uber-auto_k9m4pc.png",
+        "https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=552/height=368/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy8xZGRiOGM1Ni0wMjA0LTRjZTQtODFjZS01NmExMWEwN2ZlOTgucG5n",
       price: "₹118.21",
       time: "4 mins away • 15:25",
       desc: "Bargain auto-rickshaw rides",
