@@ -12,6 +12,10 @@ const userRoutes = require("./routes/user.routes");
 
 const captionRoutes = require('./routes/caption.routes')
 
+const mapsRoutes = require('./routes/maps.routes');
+
+const rideRoutes = require('./routes/ride.routes');
+
 
 
 app.use(cookiePaerse());
@@ -29,6 +33,8 @@ app.get("/", (req, res) => {
 // routes
 app.use("/users", userRoutes);
 app.use('/captions',captionRoutes);
+app.use('/maps', mapsRoutes);
+app.use('/rides', rideRoutes);
 
 // db connect
 // connectToDb();

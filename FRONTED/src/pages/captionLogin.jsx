@@ -23,12 +23,14 @@ const CaptainLogin = () => {
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captions/login`, captionData);
 
       if(response.status === 200){
-        navigate("/caption-home");
         const data = response.data;
+    
         localStorage.setItem("token", data.token);
         setCaption(data.caption);
-        console.log("Captain Login Data:", captionData);
+    
+        navigate("/caption-home");
     }
+    
   }catch(error){
     console.error("Login error:", error.response ? error.response.data : error.message);
     alert("Login failed. Please check your credentials and try again.");

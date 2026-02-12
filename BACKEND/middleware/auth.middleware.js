@@ -35,15 +35,18 @@ module.exports.authUser = async (req, res, next) => {
   }
 };
 
+
 module.exports.authcaption = async (req,res,next)=>{
 
-  const token = req.cookies.token || req.headers.authorization?.split('')[1]
+  const token =
+    req.cookies.token ||
+    req.headers.authorization?.split(' ')[1];
 
   if(!token){
     return res.status(401).json({errors:'Unauthorized'})
   }
 
-  const isBlacklisted = await blacklistTokenModel({token})
+  const isBlacklisted = await blacklistTokenModel.findOne({ token });
 
   if(isBlacklisted){
     return res.status(401).json({errors:'Unauthorized'})
@@ -54,11 +57,14 @@ module.exports.authcaption = async (req,res,next)=>{
 
     const caption = await captionModel.findById(decode._id);
 
-    req.caption=caption;
+    if(!caption){
+      return res.status(401).json({errors:'Unauthorized'})
+    }
+
+    req.caption = caption;
+    next();
 
   }catch(err){
-    return res.status(401).json({errors:'unauthorized'})
-    
+    return res.status(401).json({errors:'Unauthorized'})
   }
-  next()
 }

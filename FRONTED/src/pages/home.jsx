@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import LocationSearchPanel from "./LocationSearchPanel";
-import VehiclePanel from "./VehiclePanel";
-import ConfirmRide from "./ConformRide";
+import LocationSearchPanel from "../components/LocationSearchPanel";
+import VehiclePanel from "../components/VehiclePanel";
+import ConfirmRide from "../components/ConformRide";
 import { ArrowLeft } from "lucide-react";
-
+import LookingForDriver from "../components/LokingForDriver"
+import WaitingForDriver from "../components/WaitingForDriver";
+import {useNavigate} from "react-router-dom"
 const Home = () => {
   const [sheetPos, setSheetPos] = useState("down");
   const [startY, setStartY] = useState(0);
@@ -11,6 +13,10 @@ const Home = () => {
   // ✅ SINGLE SOURCE OF TRUTH
   const [currentpanel, Setcurentpanel] = useState("location");
   const [panel, Setpanel] = useState(true);
+
+  const navigate = useNavigate();
+
+  const [DriverFound, setDriverFound] = useState(false);
 
   const positions = {
     down: "-65%",
@@ -47,7 +53,7 @@ const Home = () => {
       />
 
       {/* Bottom Sheet */}
-      {currentpanel!="confirm" && (
+      {currentpanel!="confirm" && currentpanel!="lookingForDriver" && (
         <div
           style={{ bottom: positions[sheetPos] }}
           className="absolute left-0 w-full h-[90%] bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-30"
@@ -110,6 +116,11 @@ const Home = () => {
       {currentpanel === "confirm" && (
         <div className="absolute inset-x-0 bottom-0 z-[60]">
           <ConfirmRide Setcurentpanel={Setcurentpanel} />
+        </div>
+      )}
+      {currentpanel === "lookingForDriver" && (
+        <div className="absolute inset-x-0 bottom-0 z-[60]">
+          <LookingForDriver />
         </div>
       )}
     </div>

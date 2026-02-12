@@ -161,7 +161,7 @@ const CaptainSign = () => {
           onClick={handleSubmit}
           className="w-full bg-black text-white py-4 rounded-lg text-lg"
         >
-          Register as Captain
+          New Captain
         </button>
 
         {/* Switch to login */}

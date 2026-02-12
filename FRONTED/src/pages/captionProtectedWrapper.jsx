@@ -1,49 +1,48 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CaptionDataContext } from '../context/captionContext';
-import axios from 'axios';
+import React, { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { CaptionDataContext } from "../context/captionContext";
+import axios from "axios";
 
-const captionProtectWrapper = ({ children }) => {
+const CaptionProtectWrapper = ({ children }) => {
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
-  const {caption, setCaption} = React.useContext(CaptionDataContext);
-  const [isloading, setIsLoading] = React.useState(true);
+  const { setCaption } = useContext(CaptionDataContext);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
     if (!token) {
-      navigate('/caption-login');
+      navigate("/caption-login");
+      return;
     }
-  }, [token, navigate]);
 
-  axios.get(`${import.meta.env.VITE_BASE_URL}/captions/profile`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((response) => {
-      setCaption(response.data);
-      setIsLoading(false);
-    })
-    .catch((error) => {
-      console.error('Error fetching caption profile:', error.response ? error.response.data : error.message);
-      localStorage.removeItem('token');
-      navigate('/caption-login');
-    }
-  )
+    axios
+      .get(`${import.meta.env.VITE_BASE_URL}/captions/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        setCaption(response.data);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching captain profile:", error);
+        localStorage.removeItem("token");
+        navigate("/caption-login");
+      });
 
-  if(isloading){
-    return(
+  }, [navigate, setCaption]);
+
+  if (isLoading) {
+    return (
       <div className="w-full h-screen flex items-center justify-center">
-        <div className="loader">Loadig...</div>
+        <div>Loading...</div>
       </div>
     );
-  }
-
-  if (!token) {
-    return null; 
   }
 
   return children;
 };
 
-export default captionProtectWrapper;
+export default CaptionProtectWrapper;

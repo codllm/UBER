@@ -60,7 +60,9 @@ const ConfirmRide = ({ Setcurentpanel }) => {
       </div>
 
       {/* Confirm Button */}
-      <button className="w-full bg-black text-white py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-900 active:scale-[0.98] transition">
+      <button className="w-full bg-black text-white py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-900 active:scale-[0.98] transition"
+      onClick={()=>Setcurentpanel("lookingForDriver")}
+      >
         Confirm ride
       </button>
     </div>
