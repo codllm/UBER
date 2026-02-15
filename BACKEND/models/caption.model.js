@@ -60,7 +60,7 @@ const captionSchema = new mongoose.Schema({
       type:Number
     },
     lng:{
-      type:String
+      type:Number
 
     }
   }

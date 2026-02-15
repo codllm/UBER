@@ -1,65 +1,82 @@
 const rideModel = require("../models/ride.model");
 const mapService = require("./maps.service");
-async function getFare(pickup, destination, vehicleType) {
+
+async function getFare(pickup, destination) {
   try {
     const distanceData = await mapService.getDistance(pickup, destination);
 
-    const distanceInKm = distanceData.distanceValue / 1000; // meters → km
-    const durationInMin = distanceData.durationValue / 60; // seconds → minutes
+    const distanceInKm = distanceData.distanceValue / 1000;
+    const durationInMin = distanceData.durationValue / 60;
 
-    let baseFare, perKmRate, perMinRate;
+    const pricing = {
+      motorcycle: { baseFare: 20, perKmRate: 5, perMinRate: 1 },
+      auto: { baseFare: 30, perKmRate: 8, perMinRate: 2 },
+      car: { baseFare: 50, perKmRate: 12, perMinRate: 3 },
+    };
 
-    switch (vehicleType) {
-      case "motorcycle":
-        baseFare = 20;
-        perKmRate = 5;
-        perMinRate = 1;
-        break;
+    const fares = {};
 
-      case "auto":
-        baseFare = 30;
-        perKmRate = 8;
-        perMinRate = 2;
-        break;
+    for (const type in pricing) {
+      const { baseFare, perKmRate, perMinRate } = pricing[type];
 
-      case "car":
-        baseFare = 50;
-        perKmRate = 12;
-        perMinRate = 3;
-        break;
+      const fare =
+        baseFare +
+        distanceInKm * perKmRate +
+        durationInMin * perMinRate;
 
-      default:
-        throw new Error("Invalid vehicle type");
+      fares[type] = Math.round(fare);
     }
 
-    const fare =
-      baseFare + distanceInKm * perKmRate + durationInMin * perMinRate;
+    return fares;
 
-    return Math.round(fare);
   } catch (error) {
     console.error("Fare calculation error:", error.message);
     throw error;
   }
 }
+
+
+
+
 function getOtp() {
-  const otp = Math.floor(100000 + Math.random() * 900000);
-  return otp.toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 
-module.exports.createRide = async ({
+
+async function createRide({
   pickup,
   destination,
   user,
   vehicleType,
-}) => {
+}) {
+
   if (!user || !pickup || !destination || !vehicleType) {
     throw new Error("Missing required fields");
   }
 
-  const fare = await getFare(pickup, destination, vehicleType);
+  const fares = await getFare(pickup, destination);
+  const fare = fares[vehicleType];
+
+
   const otp = getOtp();
 
-  const newRide = new rideModel({ user, pickup, destination, fare,otp });
+  const newRide = new rideModel({
+    user,
+    pickup,
+    destination,
+    vehicleType,
+    fare,
+    otp,
+    status: "pending",
+  });
+
   return await newRide.save();
+}
+
+
+
+module.exports = {
+  getFare,
+  createRide
 };

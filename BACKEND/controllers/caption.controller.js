@@ -75,6 +75,28 @@ module.exports.profileCaption =async (req,res,next)=>{
   res.status(200).json({caption:req.caption});
 }
 
+module.exports.updateLocation = async(req,res,next)=>{
+
+  const error = validationResult(req);
+
+  if(!error.isEmpty()){
+    return res.status(400).json({errors:error.array()})
+  }
+  const {latitude,longitude} = req.body;
+  console.log("Received Location:", latitude, longitude);
+  try{
+  await captionModel.findByIdAndUpdate(req.caption._id,{
+    location:{
+      lat:latitude,
+      lng:longitude
+    }
+  })
+  return res.status(200).json({message:'Location updated successfully'})
+}catch(err){
+  return res.status(500).json({message:'Error updating location'})
+}
+}
+
 module.exports.logoutCaption = async (req, res, next) => {
   const token =
     req.cookies.token || req.headers.authorization?.split(" ")[1];

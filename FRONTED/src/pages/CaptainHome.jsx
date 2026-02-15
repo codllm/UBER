@@ -1,11 +1,101 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { CaptionDataContext } from "../context/captionContext";
+import { RidingContext } from "../context/ridingDataContext";
+import socket from "../socket";
+import axios from "axios";
 
 const CaptainHome = () => {
   const [online, setOnline] = useState(false);
   const [rideRequest, setRideRequest] = useState(false);
+
   const navigate = useNavigate();
+
+  const { rideData, setRideData } = useContext(RidingContext);
+  const { caption } = useContext(CaptionDataContext);
+
+  const [userData, setUserData] = useState({
+    email: "",
+    fullname: {
+      firstname: "",
+      lastname: "",
+    },
+  });
+
+ 
+  useEffect(() => {
+    const handleRideCreated = (data) => {
+      console.log("Ride event received:", data);
+
+      setRideData(data.ride);
+
+      setUserData({
+        email: data.user.email,
+        fullname: {
+          firstname: data.user.fullname.firstname,
+          lastname: data.user.fullname.lastname,
+        },
+      });
+
+      setRideRequest(true);
+    };
+
+    socket.on("rideCreated", handleRideCreated);
+
+    return () => {
+      socket.off("rideCreated", handleRideCreated);
+    };
+  }, []);
+
+  
+  const getLocation = () => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        resolve,
+        reject,
+        { enableHighAccuracy: true }
+      );
+    });
+  };
+
+
+  const captionOnlineLocation = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const position = await getLocation();
+
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      console.log("Latitude:", latitude);
+      console.log("Longitude:", longitude);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/captions/update-location`,
+        { latitude, longitude },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Location updated successfully");
+      }
+    } catch (err) {
+      console.error("Error updating location:", err);
+    }
+  };
+
+
+  useEffect(() => {
+    if (online) {
+      captionOnlineLocation();
+    }
+  }, [online]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gray-200">
@@ -20,7 +110,7 @@ const CaptainHome = () => {
       {/* ONLINE TOGGLE */}
       <div className="absolute top-10 right-6 bg-white px-5 py-2 rounded-full shadow-lg">
         <button
-          onClick={() => setOnline(!online)}
+          onClick={() => setOnline((prev) => !prev)}
           className={`font-semibold ${
             online ? "text-green-600" : "text-gray-600"
           }`}
@@ -49,56 +139,33 @@ const CaptainHome = () => {
       {online && !rideRequest && (
         <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-8">
 
-          <h3 className="text-lg font-semibold mb-6">
-            This Month Overview
-          </h3>
-
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-gray-100 p-4 rounded-xl">
-              <p className="text-xs text-gray-500">Total Earnings</p>
-              <p className="text-lg font-semibold">₹18,450</p>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-lg font-semibold capitalize">
+              {caption?.caption?.fullname?.firstname?.charAt(0) || "D"}
             </div>
 
-            <div className="bg-gray-100 p-4 rounded-xl">
-              <p className="text-xs text-gray-500">Total Trips</p>
-              <p className="text-lg font-semibold">132</p>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-xl">
-              <p className="text-xs text-gray-500">Avg Rating</p>
-              <p className="text-lg font-semibold">4.8 ⭐</p>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-xl">
-              <p className="text-xs text-gray-500">Online Hours</p>
-              <p className="text-lg font-semibold">96h</p>
+            <div>
+              <h3 className="text-lg font-semibold capitalize">
+                {caption?.caption?.fullname?.firstname || "Driver Name"}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {caption?.caption?.vehicle?.plate || "Vehicle Number"}
+              </p>
             </div>
           </div>
 
           <div className="text-center text-sm text-gray-500">
             Waiting for ride requests...
           </div>
-
-          {/* Simulate Ride Button (remove later) */}
-          <button
-            onClick={() => setRideRequest(true)}
-            className="mt-4 text-blue-600 underline text-sm"
-          >
-            Simulate Ride Request
-          </button>
-
         </div>
       )}
 
       {/* ================= RIDE REQUEST ================= */}
       {online && rideRequest && (
-        <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] px-6 py-6">
+        <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-6">
 
-          <h3 className="text-lg font-semibold mb-4">
-            New Ride Request
-          </h3>
+          <h3 className="text-lg font-semibold mb-4">New Ride Request</h3>
 
-          {/* USER INFO */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <img
@@ -107,36 +174,34 @@ const CaptainHome = () => {
                 className="w-12 h-12 rounded-full"
               />
               <div>
-                <p className="font-semibold">Rahul Sharma</p>
+                <p className="font-semibold capitalize">
+                  {userData?.fullname?.firstname}{" "}
+                  {userData?.fullname?.lastname}
+                </p>
                 <p className="text-xs text-gray-500">4.8 ⭐</p>
               </div>
             </div>
             <Phone size={20} />
           </div>
 
-          {/* ROUTE */}
           <div className="space-y-3 text-sm mb-5">
             <div className="flex gap-2">
               <span>📍</span>
-              <span>HSR Layout, Bangalore</span>
+              <span>{rideData?.pickup}</span>
             </div>
             <div className="flex gap-2">
               <span>🏁</span>
-              <span>Koramangala, Bangalore</span>
+              <span>{rideData?.destination}</span>
             </div>
           </div>
 
-          {/* FARE */}
           <div className="flex justify-between mb-6">
-            <span className="text-sm text-gray-600">
-              Estimated Fare
-            </span>
+            <span className="text-sm text-gray-600">Estimated Fare</span>
             <span className="font-semibold text-lg">
-              ₹240
+              ₹{rideData?.fare}
             </span>
           </div>
 
-          {/* BUTTONS */}
           <div className="flex gap-4">
             <button
               onClick={() => setRideRequest(false)}
@@ -147,7 +212,7 @@ const CaptainHome = () => {
 
             <button
               className="flex-1 bg-black text-white py-3 rounded-xl font-semibold"
-              onClick={()=>navigate('captain-arriving')}
+              onClick={() => navigate("captain-arriving")}
             >
               Accept
             </button>
@@ -155,7 +220,6 @@ const CaptainHome = () => {
 
         </div>
       )}
-
     </div>
   );
 };

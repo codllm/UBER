@@ -21,7 +21,12 @@ const rideRoutes = require('./routes/ride.routes');
 app.use(cookiePaerse());
 
 // middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // frontend ka exact URL
+    credentials: true
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

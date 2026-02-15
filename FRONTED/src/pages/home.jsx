@@ -1,22 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import LocationSearchPanel from "../components/LocationSearchPanel";
 import VehiclePanel from "../components/VehiclePanel";
 import ConfirmRide from "../components/ConformRide";
+import LookingForDriver from "../components/LokingForDriver";
 import { ArrowLeft } from "lucide-react";
-import LookingForDriver from "../components/LokingForDriver"
-import WaitingForDriver from "../components/WaitingForDriver";
-import {useNavigate} from "react-router-dom"
+import axios from "axios";
+import debounce from "lodash/debounce";
+import { RidingContext } from "../context/ridingDataContext";
+
 const Home = () => {
   const [sheetPos, setSheetPos] = useState("down");
   const [startY, setStartY] = useState(0);
 
-  // ✅ SINGLE SOURCE OF TRUTH
+  const { rideData, setRideData } = React.useContext(RidingContext);
+
   const [currentpanel, Setcurentpanel] = useState("location");
-  const [panel, Setpanel] = useState(true);
 
-  const navigate = useNavigate();
+  
+  const [pickupInput, setPickupInput] = useState("");
+  const [destinationInput, setDestinationInput] = useState("");
 
-  const [DriverFound, setDriverFound] = useState(false);
+  
+  const [pickup, setPickup] = useState(null);
+  const [destination, setDestination] = useState(null);
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeField, setActiveField] = useState(null);
 
   const positions = {
     down: "-65%",
@@ -34,9 +43,55 @@ const Home = () => {
     else if (diff < -50) setSheetPos("down");
   };
 
+  // 🔹 API CALL
+  const getsuggestion = async (input) => {
+    if (!input) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
+        {
+          params: { input },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setSuggestions(response.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // 🔹 Debounce
+  const debouncedSuggestion = useCallback(
+    debounce((value) => {
+      getsuggestion(value);
+    }, 500),
+    []
+  );
+
+  
+  useEffect(() => {
+    if (pickup && destination) {
+      setRideData((prev) => ({
+        ...prev,
+        pickup: pickup,
+        destination: destination,
+      }));
+      Setcurentpanel("vehicle");
+      setSuggestions([]);
+    }
+  }, [pickup, destination]);
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gray-200 font-sans">
-      {/* Uber Logo */}
+      
+      {/* Logo */}
       <div className="absolute top-10 left-6 z-20 p-2 bg-white rounded-full shadow-lg">
         <img
           className="w-8"
@@ -53,14 +108,13 @@ const Home = () => {
       />
 
       {/* Bottom Sheet */}
-      {currentpanel!="confirm" && currentpanel!="lookingForDriver" && (
+      {currentpanel !== "confirm" && currentpanel !== "lookingForDriver" && (
         <div
           style={{ bottom: positions[sheetPos] }}
-          className="absolute left-0 w-full h-[90%] bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-30"
+          className="absolute left-0 w-full h-[90%] bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] transition-all duration-500 z-30"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Drag Handle */}
           <div className="flex justify-center pt-3 pb-2">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
           </div>
@@ -76,7 +130,6 @@ const Home = () => {
               )}
             </h2>
 
-            {/* Location Inputs */}
             <div className="flex items-start gap-4 relative">
               <div className="flex flex-col items-center mt-6">
                 <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-400 bg-white z-10"></div>
@@ -85,14 +138,33 @@ const Home = () => {
               </div>
 
               <div className="flex-1 space-y-3">
+                
+                {/* Pickup */}
                 <input
-                  onFocus={openSheet}
+                  value={pickupInput}
+                  onFocus={() => {
+                    openSheet();
+                    setActiveField("pickup");
+                  }}
+                  onChange={(e) => {
+                    setPickupInput(e.target.value);
+                    debouncedSuggestion(e.target.value);
+                  }}
                   placeholder="Current Location"
                   className="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl"
                 />
 
+                {/* Destination */}
                 <input
-                  onFocus={openSheet}
+                  value={destinationInput}
+                  onFocus={() => {
+                    openSheet();
+                    setActiveField("destination");
+                  }}
+                  onChange={(e) => {
+                    setDestinationInput(e.target.value);
+                    debouncedSuggestion(e.target.value);
+                  }}
                   placeholder="Enter destination"
                   className="w-full bg-gray-100 border border-gray-100 p-4 rounded-xl"
                 />
@@ -101,12 +173,18 @@ const Home = () => {
           </div>
 
           {currentpanel === "location" && (
-            <LocationSearchPanel Setcurentpanel={Setcurentpanel} />
+            <LocationSearchPanel
+              suggestions={suggestions}
+              activeField={activeField}
+              setPickup={setPickup}
+              setDestination={setDestination}
+              setPickupInput={setPickupInput}
+              setDestinationInput={setDestinationInput}
+            />
           )}
         </div>
       )}
 
-      {/* Overlays */}
       {currentpanel === "vehicle" && (
         <div className="absolute inset-x-0 bottom-0 z-[60]">
           <VehiclePanel Setcurentpanel={Setcurentpanel} />
@@ -118,6 +196,7 @@ const Home = () => {
           <ConfirmRide Setcurentpanel={Setcurentpanel} />
         </div>
       )}
+
       {currentpanel === "lookingForDriver" && (
         <div className="absolute inset-x-0 bottom-0 z-[60]">
           <LookingForDriver />

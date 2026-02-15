@@ -5,6 +5,7 @@ const { validationResult, body } = require("express-validator");
 const router = express.Router();
 const captionContoller = require("../controllers/caption.controller");
 const { authcaption } = require("../middleware/auth.middleware");
+const { route } = require("./user.routes");
 
 
 
@@ -53,6 +54,10 @@ router.post(
 
 router.get('/profile',authcaption,captionContoller.profileCaption)
 
+router.post('/update-location',authcaption,[
+  body('latitude').isFloat({ min: -90, max: 90 }).withMessage('Invalid latitude'),
+  body('longitude').isFloat({ min: -180, max: 180 }).withMessage('Invalid longitude')
+],captionContoller.updateLocation)
 
 router.get('/logout',authcaption,captionContoller.logoutCaption)
 
