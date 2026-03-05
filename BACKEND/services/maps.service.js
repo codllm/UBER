@@ -76,7 +76,6 @@ module.exports.getSuggestions = async (input) => {
         },
       }
     );
-    console.log(response.data);
 
     if (response.data.status === "OK") {
       return response.data.predictions.map(

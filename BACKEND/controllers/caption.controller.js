@@ -76,7 +76,7 @@ module.exports.profileCaption =async (req,res,next)=>{
 }
 
 module.exports.updateLocation = async(req,res,next)=>{
-
+  //when user is comming online ypdate its current location into databae where he is
   const error = validationResult(req);
 
   if(!error.isEmpty()){
@@ -86,11 +86,12 @@ module.exports.updateLocation = async(req,res,next)=>{
   console.log("Received Location:", latitude, longitude);
   try{
   await captionModel.findByIdAndUpdate(req.caption._id,{
-    location:{
-      lat:latitude,
-      lng:longitude
+    location: {
+      type: "Point",
+      coordinates: [longitude, latitude]
     }
   })
+  console.log("caption location updated!")
   return res.status(200).json({message:'Location updated successfully'})
 }catch(err){
   return res.status(500).json({message:'Error updating location'})

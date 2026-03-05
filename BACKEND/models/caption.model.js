@@ -55,15 +55,18 @@ const captionSchema = new mongoose.Schema({
       enum:['car','motorcycle','auto']
     }
   },
-  location:{
-    lat:{
-      type:Number
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true
     },
-    lng:{
-      type:Number
-
+    coordinates: {
+      type: [Number], 
+      required: true
     }
   }
+  
 });
 
 captionSchema.methods.generateAuthToken = function () {
@@ -81,7 +84,7 @@ captionSchema.statics.hashPassword = async function (password) {
   return await bcrypt.hash(password, 10);
 };
 
-
 const captionModel = mongoose.model('caption',captionSchema);
+captionSchema.index({ location: "2dsphere" });
 
 module.exports = captionModel;

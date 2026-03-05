@@ -1,6 +1,8 @@
 const rideModel = require("../models/ride.model");
 const mapService = require("./maps.service");
 
+const captionModel = require('../models/caption.model')
+
 async function getFare(pickup, destination) {
   try {
     const distanceData = await mapService.getDistance(pickup, destination);
@@ -49,6 +51,7 @@ async function createRide({
   destination,
   user,
   vehicleType,
+  pickupLocation   // ✅ ADD THIS
 }) {
 
   if (!user || !pickup || !destination || !vehicleType) {
@@ -57,7 +60,6 @@ async function createRide({
 
   const fares = await getFare(pickup, destination);
   const fare = fares[vehicleType];
-
 
   const otp = getOtp();
 
@@ -69,14 +71,31 @@ async function createRide({
     fare,
     otp,
     status: "pending",
+    pickupLocation   // ✅ SAVE IT IN DB
   });
 
   return await newRide.save();
 }
 
+async function getNearbyCaption( longitude, latitude ) {
+  const nearbyCaption = await captionModel.find({
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point", 
+          coordinates: [longitude, latitude]
+        },
+        $maxDistance: 3000
+      }
+    }
+  });
+
+  return nearbyCaption;
+}
 
 
 module.exports = {
   getFare,
-  createRide
+  createRide,
+  getNearbyCaption
 };

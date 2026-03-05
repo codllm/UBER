@@ -1,85 +1,136 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Phone } from "lucide-react";
-// this for the caption when he is arriving to the user and asking for the otp to start the ride
+import { RidingContext } from "../context/ridingDataContext";
+import { CaptionDataContext } from "../context/captionContext";
+import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import socket from "../socket";
+
 const CaptainArriving = () => {
-  const [askOtp, setAskOtp] = useState(false);
-  const [otp, setOtp] = useState("");
+  const darkMapStyle = [
+    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#000000" }] },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#ece75f" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#82C8E5" }],
+    },
+    {
+      featureType: "poi",
+      stylers: [{ visibility: "off" }],
+    },
+  ];
+  const { rideData } = useContext(RidingContext);
+  const { caption } = useContext(CaptionDataContext);
+
+  const [captainLocation, setCaptainLocation] = useState(null);
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API,
+  });
+
+  const containerStyle = {
+    width: "100%",
+    height: "100%",
+  };
+
+  // ================= JOIN RIDE ROOM =================
+  useEffect(() => {
+    if (rideData?._id) {
+      socket.emit("join-ride", rideData._id);
+    }
+  }, [rideData]);
+
+  // ================= SEND LIVE LOCATION =================
+  useEffect(() => {
+
+    let interval;
+
+    if (rideData?._id && caption?.caption?._id) {
+
+      interval = setInterval(() => {
+
+        navigator.geolocation.getCurrentPosition((position) => {
+
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          setCaptainLocation({ lat, lng });
+
+          socket.emit("captain-location-update", {
+            rideId: rideData._id,
+            latitude: lat,
+            longitude: lng,
+          });
+
+        });
+
+      }, 3000);
+    }
+
+    return () => clearInterval(interval);
+
+  }, [rideData, caption]);
+
+  const pickupLocation = rideData?.pickupLocation
+    ? {
+        lat: rideData.pickupLocation.latitude,
+        lng: rideData.pickupLocation.longitude,
+      }
+    : null;
+
+  if (!isLoaded) return <div>Loading Map...</div>;
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gray-200">
+    <div className="relative w-screen h-screen">
 
-      {/* MAP WITH ROUTE */}
-      <img
-        src="https://res.cloudinary.com/dju008haw/image/upload/v1770575345/ChatGPT_Image_Feb_8_2026_11_58_25_PM_s3cmyk.png"
-        alt="map"
-        className="w-full h-full object-cover"
-      />
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        zoom={14}
+        center={pickupLocation || captainLocation}
+        options={{
+          styles: darkMapStyle,
+          disableDefaultUI: true,
 
-      {/* ETA Bubble */}
-      <div className="absolute top-10 left-6 bg-white px-4 py-2 rounded-full shadow-md">
-        <span className="text-sm font-semibold">5 mins away</span>
-      </div>
+        }}
+      >
+        {pickupLocation && <Marker position={pickupLocation} />}
 
-      {/* Bottom Panel */}
-      <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] px-6 py-6">
-
-        {!askOtp ? (
-          <>
-            <h3 className="text-lg font-semibold mb-4">
-              Navigate to Pickup Location
-            </h3>
-
-            {/* USER INFO */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <img
-                  src="https://randomuser.me/api/portraits/men/45.jpg"
-                  alt="user"
-                  className="w-12 h-12 rounded-full"
-                />
-                <div>
-                  <p className="font-semibold">Rahul Sharma</p>
-                  <p className="text-xs text-gray-500">4.8 ⭐</p>
-                </div>
-              </div>
-              <Phone size={20} />
-            </div>
-
-            {/* Pickup Location */}
-            <div className="flex items-start gap-2 mb-6 text-sm">
-              <span>📍</span>
-              <span>HSR Layout, Bangalore</span>
-            </div>
-
-            {/* Button */}
-            <button
-              onClick={() => setAskOtp(true)}
-              className="w-full bg-black text-white py-3 rounded-xl font-semibold"
-            >
-              Reached User
-            </button>
-          </>
-        ) : (
-          <>
-            <h3 className="text-lg font-semibold mb-4">
-              Enter Ride OTP
-            </h3>
-
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter 4-digit OTP"
-              className="w-full bg-gray-100 p-4 rounded-xl mb-4 outline-none text-center text-lg tracking-widest"
-            />
-
-            <button className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition">
-              Start Ride
-            </button>
-          </>
+        {captainLocation && (
+          <Marker
+            position={captainLocation}
+            icon={{
+              url: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+              scaledSize: new window.google.maps.Size(40, 40),
+            }}
+          />
         )}
+      </GoogleMap>
 
+      <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl px-6 py-6 shadow-lg">
+        <h3 className="text font-light mb-4">
+          Navigate to Pickup Location
+        </h3>
+
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="font-extrabold capitalize">
+              {rideData?.user?.fullname?.firstname}
+            </p>
+          </div>
+          <Phone size={20} />
+        </div>
+
+        <div className="flex items-start gap-2 text-sm">
+          <span>📍</span>
+          <span>{rideData?.pickup}</span>
+        </div>
       </div>
+
     </div>
   );
 };

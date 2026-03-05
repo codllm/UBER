@@ -4,40 +4,36 @@ import axios from "axios";
 export const UserDataContext = createContext(null);
 
 const UserContextProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    email: "",
-    fullname: {
-      firstname: "",
-      lastname: "",
-    },
-  });
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const userProfile = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) return; // important
+    const fetchUserProfile = async () => {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) return;
 
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/users/profile`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${userToken}`,
             },
           }
         );
 
-        if (response.status === 200) {
-          setUser(response.data);
-        }
+        setUser(response.data);
+
       } catch (err) {
-        console.error("Error fetching user profile:", err);
+        console.error("Error fetching user profile:", err.message);
+
+        // 🔥 Optional: If token invalid, remove it
+        if (err.response?.status === 401) {
+          localStorage.removeItem("userToken");
+        }
       }
     };
 
-    userProfile(); 
-
+    fetchUserProfile();
   }, []);
 
   return (

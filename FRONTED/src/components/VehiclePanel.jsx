@@ -24,7 +24,7 @@ const VehiclePanel = ({ Setcurentpanel }) => {
               destination: rideData.destination
             },
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`
             }
           }
         );

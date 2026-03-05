@@ -4,19 +4,12 @@ import { RidingContext } from "../context/ridingDataContext";
 import axios from "axios";
 
 const ConfirmRide = ({ Setcurentpanel }) => {
-  const {rideData,setRideData} = React.useContext(RidingContext);
+  const { rideData, setRideData } = React.useContext(RidingContext);
 
   const createRide = async () => {
-    const token = localStorage.getItem("token");
-    console.log("Sending:", {
-      pickup: rideData.pickup,
-      destination: rideData.destination,
-      vehicleType: rideData.vehicleType
-    });
-    
-  
+    const token = localStorage.getItem("userToken");
+
     try {
-  
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/rides/create`,
         {
@@ -30,27 +23,29 @@ const ConfirmRide = ({ Setcurentpanel }) => {
           }
         }
       );
-  
+
       if (response.status === 201) {
         const newRide = response.data;
-        setRideData(prev => ({
-          ...prev,
-          rideId: newRide._id
-        }));
+
+        // ✅ SAVE FULL RIDE OBJECT (including _id)
+        setRideData(newRide);
+
+        // ✅ SWITCH PANEL ONLY AFTER SAVING _id
+        Setcurentpanel("lookingForDriver");
       }
-  
-    }catch (err) {
+
+    } catch (err) {
       console.error("Error creating ride:", err);
     }
   };
- 
+
   return (
     <div className="w-full bg-white rounded-t-3xl px-6 py-5 shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
       
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
-          onClick={() => {Setcurentpanel("vehicle")}}
+          onClick={() => { Setcurentpanel("vehicle") }}
           className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition"
         >
           <ArrowLeft className="text-gray-900" />
@@ -60,7 +55,6 @@ const ConfirmRide = ({ Setcurentpanel }) => {
           Looking for nearby drivers
         </h3>
 
-        {/* spacer for symmetry */}
         <div className="w-8" />
       </div>
 
@@ -90,20 +84,20 @@ const ConfirmRide = ({ Setcurentpanel }) => {
         </div>
       </div>
 
-      {/* Divider */}
       <div className="h-px bg-gray-200 mb-5" />
 
       {/* Fare */}
       <div className="flex justify-between items-center mb-6">
         <span className="text-sm text-black-600">Trip fare</span>
         <span className="text-lg font-semibold text-gray-900">
-        ₹{rideData.fare}
+          ₹{rideData.fare}
         </span>
       </div>
 
       {/* Confirm Button */}
-      <button className="w-full bg-black text-white py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-900 active:scale-[0.98] transition"
-      onClick={()=>{Setcurentpanel("lookingForDriver");createRide()}}
+      <button
+        className="w-full bg-black text-white py-3.5 rounded-xl text-sm font-semibold hover:bg-gray-900 active:scale-[0.98] transition"
+        onClick={createRide}
       >
         Confirm ride
       </button>

@@ -14,6 +14,7 @@ import CaptionProtectWrapper from "./pages/captionProtectedWrapper";
 import WaitingForDriver from "./components/WaitingForDriver";
 import Riding from "./pages/Riding";
 import CaptainArriving from "./pages/CaptainArriving";
+import UserArriving from "./pages/UserArriving";
 
 const App = () => {
   return (
@@ -56,7 +57,8 @@ const App = () => {
         <Route path="/waiting-for-driver" element={<WaitingForDriver />} />
 
         <Route path="/Riding" element={<Riding />} />
-        <Route path='caption-home/captain-arriving' element={<CaptainArriving />} />
+        <Route path='/captain-arriving' element={<CaptainArriving />} />
+        <Route path="/user-arriving" element={<UserArriving />} />
       </Routes>
     </BrowserRouter>
   );

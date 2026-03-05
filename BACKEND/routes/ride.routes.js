@@ -12,6 +12,8 @@ router.post('/create', auth.authUser, [
   body('vehicleType').notEmpty().withMessage('Vehicle type is required')
 ], rideController.createRide);
 
+router.post('/rides/accept', auth.authcaption, rideController.acceptRide);
+
 router.get('/get-fare', auth.authUser, rideController.getfare);
 
 module.exports = router;

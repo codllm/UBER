@@ -5,6 +5,7 @@ import { CaptionDataContext } from "../context/captionContext";
 import { RidingContext } from "../context/ridingDataContext";
 import socket from "../socket";
 import axios from "axios";
+import MapBg from "../components/mapBg";
 
 const CaptainHome = () => {
   const [online, setOnline] = useState(false);
@@ -23,12 +24,29 @@ const CaptainHome = () => {
     },
   });
 
- 
+  /* =========================================
+     ✅ REGISTER CAPTAIN SOCKET (ADDED FIX)
+  ========================================= */
+  useEffect(() => {
+    if (caption?.caption?._id) {
+      socket.emit("register-captain", caption.caption._id);
+      console.log("Captain registered with socket:", caption.caption._id);
+    }
+  }, [caption]);
+
+  /* =========================================
+     🎯 LISTEN FOR RIDE EVENT
+  ========================================= */
   useEffect(() => {
     const handleRideCreated = (data) => {
       console.log("Ride event received:", data);
-
-      setRideData(data.ride);
+ 
+    
+      setRideData({
+        ...data.ride,
+        user: data.user,
+        caption:data.caption,
+      });
 
       setUserData({
         email: data.user.email,
@@ -48,7 +66,9 @@ const CaptainHome = () => {
     };
   }, []);
 
-  
+  /* =========================================
+     📍 GET LOCATION
+  ========================================= */
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
@@ -59,9 +79,9 @@ const CaptainHome = () => {
     });
   };
 
-
   const captionOnlineLocation = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("captainToken");
+    if (!token) return;
 
     try {
       const position = await getLocation();
@@ -90,22 +110,44 @@ const CaptainHome = () => {
     }
   };
 
-
   useEffect(() => {
     if (online) {
       captionOnlineLocation();
     }
   }, [online]);
 
+
+  const saveRideAccepted = async () => {
+
+      const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("No token found");
+      return;
+    }
+  
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/rides/accept`,
+        {
+          rideID: rideData?._id   // ✅ THIS MUST BE STRING
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      console.log("API Response:", res.data);
+  
+    } catch (err) {
+      console.error("Accept error:", err.response?.data || err.message);
+    }
+  };
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gray-200">
 
-      {/* MAP */}
-      <img
-        src="https://res.cloudinary.com/dju008haw/image/upload/v1770575345/ChatGPT_Image_Feb_8_2026_11_58_25_PM_s3cmyk.png"
-        alt="map"
-        className="w-full h-full object-cover"
-      />
+      <MapBg />
 
       {/* ONLINE TOGGLE */}
       <div className="absolute top-10 right-6 bg-white px-5 py-2 rounded-full shadow-lg">
@@ -119,7 +161,7 @@ const CaptainHome = () => {
         </button>
       </div>
 
-      {/* ================= OFFLINE ================= */}
+      {/* OFFLINE */}
       {!online && (
         <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-8">
           <h3 className="text-lg font-semibold mb-3">You're Offline</h3>
@@ -135,10 +177,9 @@ const CaptainHome = () => {
         </div>
       )}
 
-      {/* ================= ONLINE + NO RIDE ================= */}
+      {/* ONLINE + NO RIDE */}
       {online && !rideRequest && (
         <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-8">
-
           <div className="flex items-center gap-4 mb-6">
             <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-lg font-semibold capitalize">
               {caption?.caption?.fullname?.firstname?.charAt(0) || "D"}
@@ -160,10 +201,9 @@ const CaptainHome = () => {
         </div>
       )}
 
-      {/* ================= RIDE REQUEST ================= */}
+      {/* RIDE REQUEST */}
       {online && rideRequest && (
         <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-6">
-
           <h3 className="text-lg font-semibold mb-4">New Ride Request</h3>
 
           <div className="flex items-center justify-between mb-5">
@@ -212,12 +252,15 @@ const CaptainHome = () => {
 
             <button
               className="flex-1 bg-black text-white py-3 rounded-xl font-semibold"
-              onClick={() => navigate("captain-arriving")}
+              onClick={async () => {
+                await saveRideAccepted();
+                navigate("/captain-arriving");
+              }}
+
             >
               Accept
             </button>
           </div>
-
         </div>
       )}
     </div>

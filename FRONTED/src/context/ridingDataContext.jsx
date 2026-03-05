@@ -12,7 +12,9 @@ export const RidingDataProvider = ({ children }) => {
     distance: null,
     duration: null,
     driver: null,
-    vehicleName: null
+    vehicleName: null,
+    user: null,
+    caption: null,
   });
 
   return (

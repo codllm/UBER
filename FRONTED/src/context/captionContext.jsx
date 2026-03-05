@@ -8,22 +8,20 @@ const CaptionContextProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchCaptainProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+      const captainToken = localStorage.getItem("captainToken");
+      if (!captainToken) return;
 
+      try {
         const response = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/captions/profile`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${captainToken}`,
             },
           }
         );
 
-        // 🔥 IMPORTANT — no nesting
         setCaption(response.data);
-
       } catch (error) {
         console.log("Profile fetch error:", error.message);
       }

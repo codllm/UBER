@@ -27,9 +27,13 @@ const UserLogin = () => {
       if (response.status === 200) {
         setUser(data.user);
         console.log("You are logged in");
-
-        localStorage.setItem("token", data.token);
-        
+  
+        // 🔥 FIX — define token first
+        const token = data.token;
+  
+        localStorage.setItem("userToken", token);
+        localStorage.removeItem("captainToken");
+  
         navigate("/home");
       }
     } catch (error) {
@@ -40,7 +44,6 @@ const UserLogin = () => {
 
   return (
     <div className="w-full h-screen bg-white flex flex-col justify-between">
-
       {/* Header */}
       <div className="w-full flex justify-center py-6">
         <span className="text-[22px] font-bold tracking-tight text-black">

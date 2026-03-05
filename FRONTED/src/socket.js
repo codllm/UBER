@@ -1,5 +1,9 @@
-import {io} from "socket.io-client";
+// src/socket.js
+import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3060");
+const socket = io(import.meta.env.VITE_BASE_URL, {
+  autoConnect: true,
+  transports: ["websocket"],
+});
 
 export default socket;

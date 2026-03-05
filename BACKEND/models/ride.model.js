@@ -8,7 +8,7 @@ const rideSchema = new mongoose.Schema({
   },
   caption:{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Caption'
+    ref: 'caption'
   },
   pickup:{
     type: String,
@@ -47,7 +47,11 @@ const rideSchema = new mongoose.Schema({
     required: true,
     select:false
 
-  }
+  },
+  pickupLocation: {
+    latitude: Number,
+    longitude: Number,
+  },
 });
 
 module.exports = mongoose.model('ride', rideSchema);
