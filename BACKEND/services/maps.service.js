@@ -89,3 +89,30 @@ module.exports.getSuggestions = async (input) => {
     throw error;
   }
 };
+
+
+module.exports.getAddressFromCoords = async (lat, lng) => {
+  const apiKey = process.env.GOOGLE_MAPS_API;
+
+  try {
+    const response = await axios.get(
+      "https://maps.googleapis.com/maps/api/geocode/json",
+      {
+        params: {
+          latlng: `${lat},${lng}`,
+          key: apiKey,
+        },
+      }
+    );
+
+    if (response.data.status === "OK") {
+      return response.data.results[0].formatted_address;
+    } else {
+      throw new Error("Unable to fetch address");
+    }
+
+  } catch (error) {
+    console.error("Error fetching address:", error.message);
+    return null;
+  }
+};

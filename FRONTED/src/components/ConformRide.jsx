@@ -28,6 +28,7 @@ const ConfirmRide = ({ Setcurentpanel }) => {
         const newRide = response.data;
 
         // ✅ SAVE FULL RIDE OBJECT (including _id)
+        localStorage.setItem("currentRide",newRide._id);
         setRideData(newRide);
 
         // ✅ SWITCH PANEL ONLY AFTER SAVING _id

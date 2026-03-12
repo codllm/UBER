@@ -2,6 +2,7 @@ import React, { useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { RidingContext } from "../context/ridingDataContext";
 import socket from "../socket";
+import axios from "axios";
 
 const LookingForDriver = () => {
 
@@ -27,24 +28,92 @@ const LookingForDriver = () => {
 
   /* 3️⃣ Listen for ride accepted */
 
-useEffect(() => {
-  const handleRideAccepted = (data) => {
-    setRideData(prev => ({
-      ...prev,
-      status: data.status,
-      caption: data.caption,
-      otp: data.otp,   
-    }));
+  useEffect(() => {
 
-    navigate("/user-arriving");
-  };
+    const fetchRideDetails = async () => {
+  
+      const currentRideId = localStorage.getItem("currentRide");
+      if (!currentRideId) return;
+  
+      try {
+  
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/rides/details-by-id/user?rideId=${currentRideId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`
+            }
+          }
+        );
+  
+        setRideData({
+          ...res.data,
+          captain: res.data.caption
+        });
+  
+      } catch (err) {
+        console.log(err);
+      }
+    };
+  
+    fetchRideDetails();
+  
+  
+    const handleRideAccepted = (data) => {
+  
+      setRideData(prev => ({
+        ...prev,
+        status: data.status,
+        captain: data.caption, // rename here
+        otp: data.otp
+      }));
+  
+      navigate("/user-arriving");
+    };
+  
+    socket.on("ride-accepted", handleRideAccepted);
+  
+    return () => {
+      socket.off("ride-accepted", handleRideAccepted);
+    };
+  
+  }, []);
 
-  socket.on("ride-accepted", handleRideAccepted);
+  const [count, setCount] = React.useState(120);
 
-  return () => {
-    socket.off("ride-accepted", handleRideAccepted);
-  };
-}, []);
+  useEffect(() => {
+  
+    const timer = setInterval(() => {
+  
+      setCount((prev) => {
+  
+        if (prev === 1) {
+          clearInterval(timer);
+
+          axios.post(`${import.meta.env.VITE_BASE_URL}/rides/cancel`, {
+            rideId:localStorage.getItem("currentRide"),
+          }
+          , {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`
+            }
+          })
+          localStorage.removeItem("currentRide");
+          navigate("/home");
+          window.location.reload();
+        }
+  
+        return prev - 1;
+  
+      });
+  
+    }, 1000);
+  
+    return () => clearInterval(timer);
+  
+  }, []);
+
+  
 
   return (
     <div className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl px-6 py-8 shadow-[0_-10px_30px_rgba(0,0,0,0.15)] z-[70]">
@@ -62,8 +131,8 @@ useEffect(() => {
         Looking for a nearby driver...
       </h3>
 
-      <p className="text-center text-sm text-gray-500 mt-2">
-        Please wait while we connect you
+      <p className="text-center text-sm text-gray-600 mt-2">
+        Please wait while we connect you <span className="ml-2">{count}s</span>
       </p>
     </div>
   );

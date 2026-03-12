@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const rideSchema = new mongoose.Schema({
   user:{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'user',
     required: true
   },
   caption:{
@@ -49,6 +49,10 @@ const rideSchema = new mongoose.Schema({
 
   },
   pickupLocation: {
+    latitude: Number,
+    longitude: Number,
+  },
+  destinationLocation: {
     latitude: Number,
     longitude: Number,
   },

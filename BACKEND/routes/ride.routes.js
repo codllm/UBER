@@ -14,6 +14,11 @@ router.post('/create', auth.authUser, [
 
 router.post('/rides/accept', auth.authcaption, rideController.acceptRide);
 
+router.get('/details-by-id', auth.authUser, rideController.getRideDetailsById);
+router.get('/caption/details-by-id', auth.authcaption, rideController.getRideDetailsById);
+router.post('/cancel', auth.authUser, rideController.cancelRide);
+
 router.get('/get-fare', auth.authUser, rideController.getfare);
+router.post('/start-ride', auth.authcaption, rideController.startRide);
 
 module.exports = router;

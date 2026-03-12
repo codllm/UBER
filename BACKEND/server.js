@@ -57,15 +57,11 @@ io.on("connection", (socket) => {
   // CAPTAIN LIVE LOCATION UPDATE
   // ==========================================
   socket.on("captain-location-update", (data) => {
-    // Expected:
-    // {
-    //   rideId,
-    //   latitude,
-    //   longitude
-    // }
+
 
     if (!data?.rideId) return;
 
+    console.log("📍 Captain location update for ride:", data.rideId);
     console.log("📍 Captain location update for ride:", data.rideId);
 
     io.to(data.rideId).emit("captain-location", {

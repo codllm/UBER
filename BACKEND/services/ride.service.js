@@ -41,7 +41,7 @@ async function getFare(pickup, destination) {
 
 
 function getOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(1000 + Math.random() * 900).toString();
 }
 
 
@@ -51,7 +51,8 @@ async function createRide({
   destination,
   user,
   vehicleType,
-  pickupLocation   // ✅ ADD THIS
+  pickupLocation,
+  destinationLocation  // ✅ ADD THIS
 }) {
 
   if (!user || !pickup || !destination || !vehicleType) {
@@ -71,7 +72,8 @@ async function createRide({
     fare,
     otp,
     status: "pending",
-    pickupLocation   // ✅ SAVE IT IN DB
+    pickupLocation ,
+    destinationLocation  // ✅ SAVE IT IN DB
   });
 
   return await newRide.save();

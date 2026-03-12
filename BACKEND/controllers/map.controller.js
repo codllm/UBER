@@ -53,3 +53,28 @@ module.exports.getSuggestions = async (req, res) => {
     });
   }
 };
+
+module.exports.getAddressFromCoords = async (req, res) => {
+  const { lat, lng } = req.query;
+
+  if (!lat || !lng) {
+    return res.status(400).json({
+      error: "Latitude and longitude query parameters are required"
+    });
+  }
+
+  try {
+    const address = await mapService.getAddressFromCoords(lat, lng);
+
+    return res.status(200).json({
+      address: address
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      message: "Failed to fetch address from coordinates"
+    });
+  }
+};

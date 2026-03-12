@@ -12,6 +12,10 @@ const VehiclePanel = ({ Setcurentpanel }) => {
   // 🔥 Fetch all vehicle fares
   React.useEffect(() => {
 
+
+
+
+
     const fetchFares = async () => {
       try {
         setLoading(true);
@@ -28,7 +32,7 @@ const VehiclePanel = ({ Setcurentpanel }) => {
             }
           }
         );
-        console.log("FARE RESPONSE:", response.data);
+        
 
         setFares(response.data.fare);
 

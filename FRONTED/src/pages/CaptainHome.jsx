@@ -80,11 +80,13 @@ const CaptainHome = () => {
   };
 
   const captionOnlineLocation = async () => {
-    const token = localStorage.getItem("captainToken");
+    console.log("Updating location for captain... captionOnlineLocation call the function");
+    const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
       const position = await getLocation();
+      console.log("Location obtained:", position);
 
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
@@ -124,6 +126,7 @@ const CaptainHome = () => {
       console.log("No token found");
       return;
     }
+    localStorage.setItem("currentRide", rideData?._id); // ✅ THIS MUST BE STRING 
   
     try {
       const res = await axios.post(
@@ -144,6 +147,26 @@ const CaptainHome = () => {
       console.error("Accept error:", err.response?.data || err.message);
     }
   };
+  useEffect(() => {
+
+    const handleRideCancelled = (data) => {
+  
+      if (data.rideId === rideData?._id) {
+  
+        setRideData(null);
+        navigate("/captain-home");
+  
+      }
+  
+    };
+  
+    socket.on("ride-cancelled", handleRideCancelled);
+  
+    return () => {
+      socket.off("ride-cancelled", handleRideCancelled);
+    };
+  
+  }, [rideData]);
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gray-200">
 

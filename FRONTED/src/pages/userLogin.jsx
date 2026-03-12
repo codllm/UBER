@@ -33,6 +33,7 @@ const UserLogin = () => {
   
         localStorage.setItem("userToken", token);
         localStorage.removeItem("captainToken");
+      
   
         navigate("/home");
       }

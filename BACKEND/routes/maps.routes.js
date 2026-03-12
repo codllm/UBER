@@ -13,4 +13,6 @@ router.get('/distance', auth.authUser, mapController.getDistance);
 
 router.get('/get-suggestions', auth.authUser, mapController.getSuggestions);
 
+router.get('/get-address', auth.authUser, mapController.getAddressFromCoords);
+
 module.exports = router;

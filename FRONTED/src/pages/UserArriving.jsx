@@ -1,32 +1,35 @@
 import React, { useEffect, useState, useContext } from "react";
-import { GoogleMap, Marker, Polyline, useLoadScript } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  Polyline,
+  useLoadScript,
+} from "@react-google-maps/api";
 import { RidingContext } from "../context/ridingDataContext";
 import { Phone } from "lucide-react";
 import socket from "../socket";
+import axios from "axios";
 
 const UserArriving = () => {
+
   const darkMapStyle = [
     { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
     { elementType: "labels.text.fill", stylers: [{ color: "#000000" }] },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: "#ece75f" }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: "#82C8E5" }],
-    },
-    {
-      featureType: "poi",
-      stylers: [{ visibility: "off" }],
-    },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#ece75f" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#82C8E5" }] },
+    { featureType: "poi", stylers: [{ visibility: "on" }] },
   ];
 
-  const { rideData } = useContext(RidingContext);
+  const { rideData, setRideData } = useContext(RidingContext);
 
   const [captainLocation, setCaptainLocation] = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
+  const [routePath, setRoutePath] = useState([]);
+
+  const [loadingRide, setLoadingRide] = useState(true);
+
+  // ⭐ distance state
+  const [distanceMeters, setDistanceMeters] = useState(null);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API,
@@ -37,20 +40,96 @@ const UserArriving = () => {
     height: "100%",
   };
 
-  // ================= JOIN ROOM =================
+  /* ================= DISTANCE FUNCTION ================= */
+
+  const calculateDistance = (loc1, loc2) => {
+
+    const R = 6371;
+
+    const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
+    const dLng = (loc2.lng - loc1.lng) * Math.PI / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(loc1.lat * Math.PI / 180) *
+      Math.cos(loc2.lat * Math.PI / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const distance = R * c;
+
+    return Math.round(distance * 1000);
+
+  };
+
   useEffect(() => {
+
+    const fetchRideDetails = async () => {
+
+      const currentRideId = localStorage.getItem("currentRide");
+
+      if (!currentRideId) {
+        setLoadingRide(false);
+        return;
+      }
+
+      try {
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/rides/details-by-id?rideId=${currentRideId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            },
+          }
+        );
+
+        const rideDetails = {
+          ...res.data,
+          caption: res.data.caption || res.data.captain
+        };
+
+        setRideData(rideDetails);
+
+      } catch (err) {
+
+        console.log(err);
+
+      } finally {
+
+        setLoadingRide(false);
+
+      }
+
+    };
+
+    fetchRideDetails();
+
+  }, []);
+
+  useEffect(() => {
+
     if (!rideData?._id) return;
+
     socket.emit("join-ride", rideData._id);
+
   }, [rideData]);
 
-  // ================= RECEIVE LOCATION =================
+  /* ================= RECEIVE DRIVER LOCATION ================= */
+
   useEffect(() => {
 
     const handleLocation = (data) => {
-      setCaptainLocation({
+
+      const location = {
         lat: data.latitude,
         lng: data.longitude,
-      });
+      };
+
+      setCaptainLocation(location);
+
     };
 
     socket.on("captain-location", handleLocation);
@@ -59,8 +138,6 @@ const UserArriving = () => {
 
   }, []);
 
-  if (!isLoaded) return <div>Loading Map...</div>;
-
   const pickupLocation = rideData?.pickupLocation
     ? {
         lat: rideData.pickupLocation.latitude,
@@ -68,41 +145,130 @@ const UserArriving = () => {
       }
     : null;
 
+  const destinationLocation = rideData?.destinationLocation
+    ? {
+        lat: rideData.destinationLocation.latitude,
+        lng: rideData.destinationLocation.longitude,
+      }
+    : null;
+
+  /* ⭐ calculate distance when driver moves */
+
+  useEffect(() => {
+
+    if (!captainLocation || !pickupLocation) return;
+
+    const meters = calculateDistance(captainLocation, pickupLocation);
+
+    setDistanceMeters(meters);
+
+  }, [captainLocation, pickupLocation]);
+
+  useEffect(() => {
+
+    if (!mapCenter && (captainLocation || pickupLocation)) {
+      setMapCenter(captainLocation || pickupLocation);
+    }
+
+  }, [captainLocation, pickupLocation]);
+
+  useEffect(() => {
+
+    if (!isLoaded) return;
+    if (!captainLocation) return;
+    if (!pickupLocation) return;
+
+    let target = pickupLocation;
+
+    if (rideData?.status === "ongoing") {
+
+      if (!destinationLocation) return;
+
+      target = destinationLocation;
+
+    }
+
+    const directionsService = new window.google.maps.DirectionsService();
+
+    directionsService.route(
+      {
+        origin: captainLocation,
+        destination: target,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+
+        if (status === "OK") {
+
+          const path = result.routes[0].overview_path.map((p) => ({
+            lat: p.lat(),
+            lng: p.lng(),
+          }));
+
+          setRoutePath(path);
+
+        }
+
+      }
+    );
+
+  }, [
+    captainLocation,
+    pickupLocation,
+    destinationLocation,
+    rideData?.status,
+    isLoaded
+  ]);
+
+  if (loadingRide) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center">
+        Loading ride details...
+      </div>
+    );
+  }
+
+  if (!isLoaded) return <div>Loading Map...</div>;
+
   return (
     <div className="relative w-screen h-screen">
 
-      {/* ================= MAP ================= */}
       <GoogleMap
         mapContainerStyle={containerStyle}
-        zoom={14}
-        center={captainLocation || pickupLocation}
+        zoom={17}
+        center={mapCenter}
         options={{
           styles: darkMapStyle,
           disableDefaultUI: true,
-
         }}
       >
 
-        {/* Pickup Marker */}
-        {pickupLocation && (
-          <Marker position={pickupLocation} />
-        )}
+        {pickupLocation && <Marker position={pickupLocation} />}
 
-        {/* Captain Moving Icon */}
         {captainLocation && (
-          <Marker
-            position={captainLocation}
-            icon={{
-              url: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
-              scaledSize: new window.google.maps.Size(40, 40),
-            }}
-          />
-        )}
+  <Marker
+    position={captainLocation}
+    icon={{
+      url: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+      scaledSize: new window.google.maps.Size(40, 40),
+      labelOrigin: new window.google.maps.Point(20, -10) // ⭐ move text above car
+    }}
+    label={
+      distanceMeters
+        ? {
+            text: `${distanceMeters} m`,
+            fontSize: "12px",
+            fontWeight: "bold",
+            color: "#000",
+          }
+        : undefined
+    }
+  />
+)}
 
-        {/* Route Line */}
-        {pickupLocation && captainLocation && (
+        {routePath.length > 0 && (
           <Polyline
-            path={[captainLocation, pickupLocation]}
+            path={routePath}
             options={{
               strokeColor: "#000000",
               strokeWeight: 4,
@@ -113,58 +279,69 @@ const UserArriving = () => {
       </GoogleMap>
 
       {/* ================= BOTTOM PANEL ================= */}
-      <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-6">
 
-        <h3 className="text-lg font-semibold mb-4">
-          Captain is arriving 🚗
-        </h3>
+      <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] px-4 sm:px-6 md:px-8 pt-2 pb-6 sm:pb-8">
 
-        {/* Driver Info */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <img
-              src="https://randomuser.me/api/portraits/men/32.jpg"
-              alt="captain"
-              className="w-14 h-14 rounded-full"
-            />
+        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4 sm:mb-6" />
+
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+
+          <h3 className="text-lg sm:text-xl font-bold text-gray-800">
+            Captain is arriving
+          </h3>
+
+          <div className="flex flex-col items-end">
+
+            <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+              OTP
+            </span>
+
+            <h4 className="text-lg sm:text-xl font-mono font-bold bg-yellow-400 px-3 py-1 rounded-lg shadow-sm border border-yellow-500">
+              {rideData?.otp}
+            </h4>
+
+          </div>
+
+        </div>
+
+        <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-2xl mb-4 sm:mb-6 border border-gray-100">
+
+          <div className="flex items-center gap-3 sm:gap-4">
+
+            <div className="relative">
+
+              <img
+                src="https://randomuser.me/api/portraits/men/32.jpg"
+                alt="captain"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white shadow-sm"
+              />
+
+              <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white"></div>
+
+            </div>
+
             <div>
-              <p className="font-semibold capitalize">
+
+              <p className="font-bold text-gray-900 text-base sm:text-lg capitalize">
                 {rideData?.caption?.fullname?.firstname}
               </p>
-              <p className="text-sm text-gray-500">
+
+              <p className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded mt-1 inline-block">
                 {rideData?.caption?.vehicle?.plate}
               </p>
+
             </div>
+
           </div>
 
-          <Phone size={22} />
-        </div>
+          <button className="p-2 sm:p-3 bg-white rounded-full shadow-md border border-gray-100">
+            <Phone size={20} className="text-gray-700" />
+          </button>
 
-        {/* Route Info */}
-        <div className="space-y-3 text-sm mb-5">
-          <div className="flex gap-2">
-            <span>📍</span>
-            <span>{rideData?.pickup}</span>
-          </div>
-
-          <div className="flex gap-2">
-            <span>🏁</span>
-            <span>{rideData?.destination}</span>
-          </div>
-        </div>
-
-        {/* Fare */}
-        <div className="flex justify-between">
-          <span className="text-sm text-gray-600">Fare</span>
-          <span className="font-semibold text-lg">
-            ₹{rideData?.fare}
-          </span>
-        </div>
-        <div>
-          <span>{rideData?.otp}</span>
         </div>
 
       </div>
+
     </div>
   );
 };
