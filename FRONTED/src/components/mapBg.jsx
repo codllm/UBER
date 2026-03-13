@@ -22,11 +22,11 @@ const MapBg = ({ onLocationChange, currentpanel }) => {
   const mapRef = useRef(null);
 
   const [currentLocation, setCurrentLocation] = useState({
-    lat: 23.3441,
-    lng: 85.3096,
+    lat: 28.61,
+    lng: 77.21,
   });
 
-  // Get user location
+  // Get user location as he logins in the app
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {

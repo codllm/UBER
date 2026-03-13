@@ -25,10 +25,7 @@ const UserArriving = () => {
   const [captainLocation, setCaptainLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
   const [routePath, setRoutePath] = useState([]);
-
   const [loadingRide, setLoadingRide] = useState(true);
-
-  // ⭐ distance state
   const [distanceMeters, setDistanceMeters] = useState(null);
 
   const { isLoaded } = useLoadScript({
@@ -40,29 +37,7 @@ const UserArriving = () => {
     height: "100%",
   };
 
-  /* ================= DISTANCE FUNCTION ================= */
-
-  const calculateDistance = (loc1, loc2) => {
-
-    const R = 6371;
-
-    const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
-    const dLng = (loc2.lng - loc1.lng) * Math.PI / 180;
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(loc1.lat * Math.PI / 180) *
-      Math.cos(loc2.lat * Math.PI / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    const distance = R * c;
-
-    return Math.round(distance * 1000);
-
-  };
+  /* FETCH RIDE */
 
   useEffect(() => {
 
@@ -109,6 +84,8 @@ const UserArriving = () => {
 
   }, []);
 
+  /* JOIN RIDE ROOM */
+
   useEffect(() => {
 
     if (!rideData?._id) return;
@@ -117,7 +94,7 @@ const UserArriving = () => {
 
   }, [rideData]);
 
-  /* ================= RECEIVE DRIVER LOCATION ================= */
+  /* CAPTAIN LOCATION SOCKET */
 
   useEffect(() => {
 
@@ -152,17 +129,7 @@ const UserArriving = () => {
       }
     : null;
 
-  /* ⭐ calculate distance when driver moves */
-
-  useEffect(() => {
-
-    if (!captainLocation || !pickupLocation) return;
-
-    const meters = calculateDistance(captainLocation, pickupLocation);
-
-    setDistanceMeters(meters);
-
-  }, [captainLocation, pickupLocation]);
+  /* MAP CENTER */
 
   useEffect(() => {
 
@@ -171,6 +138,8 @@ const UserArriving = () => {
     }
 
   }, [captainLocation, pickupLocation]);
+
+  /* ROUTE + DISTANCE */
 
   useEffect(() => {
 
@@ -207,6 +176,10 @@ const UserArriving = () => {
 
           setRoutePath(path);
 
+          /* ⭐ REAL ROAD DISTANCE FIX */
+          const meters = result.routes[0].legs[0].distance.value;
+          setDistanceMeters(meters);
+
         }
 
       }
@@ -219,6 +192,33 @@ const UserArriving = () => {
     rideData?.status,
     isLoaded
   ]);
+
+  /* OTP VERIFIED EVENT */
+
+  useEffect(() => {
+
+    const handleOtpVerified = (rideId) => {
+
+      if (rideData?._id !== rideId) return;
+
+      setRideData(prev => ({
+        ...prev,
+        status: "ongoing"
+      }));
+
+      if (captainLocation) {
+        setMapCenter(captainLocation);
+      }
+
+    };
+
+    socket.on("otp-verified-success", handleOtpVerified);
+
+    return () => {
+      socket.off("otp-verified-success", handleOtpVerified);
+    };
+
+  }, [rideData, captainLocation]);
 
   if (loadingRide) {
     return (
@@ -246,39 +246,39 @@ const UserArriving = () => {
         {pickupLocation && <Marker position={pickupLocation} />}
 
         {captainLocation && (
-  <Marker
-    position={captainLocation}
-    icon={{
-      url: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
-      scaledSize: new window.google.maps.Size(40, 40),
-      labelOrigin: new window.google.maps.Point(20, -10) // ⭐ move text above car
-    }}
-    label={
-      distanceMeters
-        ? {
-            text: `${distanceMeters} m`,
-            fontSize: "12px",
-            fontWeight: "bold",
-            color: "#000",
-          }
-        : undefined
-    }
-  />
-)}
+          <Marker
+            position={captainLocation}
+            icon={{
+              url: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+              scaledSize: new window.google.maps.Size(40, 40),
+              labelOrigin: new window.google.maps.Point(20, -10)
+            }}
+            label={
+              distanceMeters
+                ? {
+                    text: `${distanceMeters} m`,
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    color: "#000",
+                  }
+                : undefined
+            }
+          />
+        )}
 
         {routePath.length > 0 && (
           <Polyline
             path={routePath}
             options={{
               strokeColor: "#000000",
-              strokeWeight: 4,
+              strokeWeight: 3,
             }}
           />
         )}
 
       </GoogleMap>
 
-      {/* ================= BOTTOM PANEL ================= */}
+      {/* UI PANEL */}
 
       <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] px-4 sm:px-6 md:px-8 pt-2 pb-6 sm:pb-8">
 

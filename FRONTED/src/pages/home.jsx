@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import axios from "axios";
 import debounce from "lodash.debounce"; // ✅ missing import
 import { RidingContext } from "../context/ridingDataContext";
-import MapBg from "../components/MapBg";
+import MapBg from "../components/mapBg";
 
 const Home = () => {
   const [sheetPos, setSheetPos] = useState("down");
@@ -76,7 +76,7 @@ const Home = () => {
     }
   };
 
-  /* ================= DEBOUNCE SUGGESTION ================= */
+ 
 
   const debouncedSuggestion = useCallback(
     debounce((value) => {
@@ -84,7 +84,8 @@ const Home = () => {
     }, 500),
     []
   );
-
+ // if alredy have an ride in local storage then show looking for driver panel
+ // wapas ride creat krne k baad just back nhi aa skte 
   useEffect(() => {
     const isrideAvai = localStorage.getItem("currentRide");
 
@@ -99,7 +100,9 @@ const Home = () => {
     };
   }, [debouncedSuggestion]);
 
-  /* ================= PANEL SWITCH ================= */
+
+  // yahan pe avoid krne k liye lang lat aur useEffect k sath hi pickup ka shi location 
+  //set  ho jaye taki vehicle panel me shi location show ho aur user ko confusion na ho
 
   useEffect(() => {
     if (pickup && destination) {
@@ -122,8 +125,8 @@ const Home = () => {
   
   }, [pickup, destination]);
 
-  /* ================= REVERSE GEOCODE ================= */
-
+ // yahan pe coords ke basis pe addresh fetch krne ka function
+ 
   const fetchAddress = async (coords) => {
     try {
       const token = localStorage.getItem("userToken");
@@ -151,7 +154,7 @@ const Home = () => {
     }
   };
 
-  /* ================= DEBOUNCE MAP ================= */
+
 
   const debouncedReverseGeocode = useCallback(
     debounce((coords) => {
@@ -167,7 +170,8 @@ const Home = () => {
   }, [debouncedReverseGeocode]);
 
   const handleMapMove = (coords) => {
-    console.log("Map moved:", coords);
+    // ye function ko MAPBG se call krna hai jab map move ho aur 
+    //yahan pe check krna hai ki pickup field active hai ya nahi taki jab user pickup field me ho tabhi reverse geocoding ho aur pickup field me address show ho
 
     if (activeField === "pickup" || activeField === null) {
       debouncedReverseGeocode(coords);

@@ -21,17 +21,17 @@ const io = new Server(server, {
   },
 });
 
-// Make io accessible in controllers
+
 app.set("io", io);
 
-// ================= SOCKET CONNECTION =================
+
 io.on("connection", (socket) => {
 
   console.log("🔌 New socket connected:", socket.id);
 
-  // ==========================================
+
   // REGISTER CAPTAIN (save socketId in DB)
-  // ==========================================
+
   socket.on("register-captain", async (captainId) => {
     try {
       await Captain.findByIdAndUpdate(captainId, {
@@ -45,24 +45,24 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ==========================================
-  // JOIN RIDE ROOM (used by both user & captain)
-  // ==========================================
+
+
+ // user ride create-->rideID generated and when ride accepted by captain then
+ //ride room emited to user and captain and both join the room with rideID
   socket.on("join-ride", (rideId) => {
     socket.join(rideId);
-    console.log(`📦 Socket ${socket.id} joined ride room: ${rideId}`);
+
   });
 
-  // ==========================================
-  // CAPTAIN LIVE LOCATION UPDATE
-  // ==========================================
+
+  // CAPTAIN LIVE LOCATION UPDATE(event)
   socket.on("captain-location-update", (data) => {
 
 
-    if (!data?.rideId) return;
-
-    console.log("📍 Captain location update for ride:", data.rideId);
-    console.log("📍 Captain location update for ride:", data.rideId);
+    if (!data?.rideId){
+      console.error("❌ Missing rideId in location update that i swhy error comes in console");
+      return;
+    }
 
     io.to(data.rideId).emit("captain-location", {
       latitude: data.latitude,
@@ -70,9 +70,20 @@ io.on("connection", (socket) => {
     });
   });
 
-  // ==========================================
+  //otp verification event
+  socket.on("otp-verified", (data) => {
+
+    const { rideId } = data;
+  
+    if (!rideId) return;
+  
+    io.to(rideId).emit("otp-verified-success", rideId);
+  
+  });
+
+
   // HANDLE DISCONNECT
-  // ==========================================
+
   socket.on("disconnect", async () => {
     console.log("❌ Socket disconnected:", socket.id);
 

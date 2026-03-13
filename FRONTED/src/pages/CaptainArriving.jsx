@@ -41,7 +41,7 @@ const CaptainArriving = () => {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API,
   });
 
-  /* ---------------- DISTANCE CALCULATION ---------------- */
+
 
   const calculateDistance = (loc1, loc2) => {
 
@@ -63,7 +63,7 @@ const CaptainArriving = () => {
 
   };
 
-  /* ---------------- RESTORE RIDE ---------------- */
+  // RESTORE RIDE 
 
   useEffect(() => {
 
@@ -95,8 +95,7 @@ const CaptainArriving = () => {
 
   }, []);
 
-  /* ---------------- JOIN SOCKET ---------------- */
-
+  //captain join-room with the rideId
   useEffect(() => {
 
     if (rideData?._id) {
@@ -105,7 +104,7 @@ const CaptainArriving = () => {
 
   }, [rideData]);
 
-  /* ---------------- CAPTAIN GPS ---------------- */
+  // captain location call every after 3sec
 
   useEffect(() => {
 
@@ -141,7 +140,7 @@ const CaptainArriving = () => {
 
   }, [rideData, caption]);
 
-  /* ---------------- LOCATIONS ---------------- */
+  //LOCATIONS 
 
   const pickupLocation = rideData?.pickupLocation
     ? { lat: rideData.pickupLocation.latitude, lng: rideData.pickupLocation.longitude }
@@ -151,7 +150,7 @@ const CaptainArriving = () => {
     ? { lat: rideData.destinationLocation.latitude, lng: rideData.destinationLocation.longitude }
     : null;
 
-  /* ---------------- DISTANCE UPDATE ---------------- */
+  // DISTANCE UPDATE
 
   useEffect(() => {
 
@@ -257,7 +256,7 @@ const CaptainArriving = () => {
   if (!isLoaded)
     return <div className="h-screen flex items-center justify-center">Loading Map...</div>;
 
-  /* ---------------- VERIFY OTP ---------------- */
+  // VERIFY OTP
 
   const verifyOtp = async () => {
 
@@ -276,6 +275,8 @@ const CaptainArriving = () => {
         if (destinationLocation) {
           setMapTarget(destinationLocation);
         }
+
+        socket.emit("otp-verified", { rideId: rideData._id });
 
       }
 
@@ -349,7 +350,7 @@ const CaptainArriving = () => {
               path={routePath}
               options={{
                 strokeColor: "#000000",
-                strokeWeight: 5
+                strokeWeight: 2
               }}
             />
           )}
