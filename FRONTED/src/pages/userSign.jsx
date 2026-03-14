@@ -1,4 +1,3 @@
-
 import { UserDataContext } from "../context/userContext";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +9,7 @@ const UserSign = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [contact, setcontact] = useState("");
 
   const { user, setUser } = useContext(UserDataContext);
 
@@ -25,6 +25,8 @@ const UserSign = () => {
       },
       email,
       password,
+      contact
+      
     };
 
     try {
@@ -87,6 +89,15 @@ const UserSign = () => {
           className="w-full bg-gray-100 px-4 py-4 rounded-lg mb-4 outline-none"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="number"
+          max={10}
+          placeholder="Contact Number"
+          className="w-full bg-gray-100 px-4 py-4 rounded-lg mb-4 outline-none"
+          value={email}
+          onChange={(e) => setcontact(e.target.value)}
         />
 
         {/* Password */}

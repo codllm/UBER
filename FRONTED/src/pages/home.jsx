@@ -5,7 +5,7 @@ import ConfirmRide from "../components/ConformRide";
 import LookingForDriver from "../components/LokingForDriver";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
-import debounce from "lodash.debounce"; // ✅ missing import
+import debounce from "lodash.debounce";
 import { RidingContext } from "../context/ridingDataContext";
 import MapBg from "../components/mapBg";
 
@@ -64,9 +64,7 @@ const Home = () => {
         `${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`,
         {
           params: { input },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -76,16 +74,13 @@ const Home = () => {
     }
   };
 
- 
-
   const debouncedSuggestion = useCallback(
     debounce((value) => {
       getsuggestion(value);
     }, 500),
     []
   );
- // if alredy have an ride in local storage then show looking for driver panel
- // wapas ride creat krne k baad just back nhi aa skte 
+
   useEffect(() => {
     const isrideAvai = localStorage.getItem("currentRide");
 
@@ -100,33 +95,23 @@ const Home = () => {
     };
   }, [debouncedSuggestion]);
 
-
-  // yahan pe avoid krne k liye lang lat aur useEffect k sath hi pickup ka shi location 
-  //set  ho jaye taki vehicle panel me shi location show ho aur user ko confusion na ho
-
   useEffect(() => {
     if (pickup && destination) {
-  
-      const pickupName =
-        typeof pickup === "string" ? pickup : pickup?.name;
-  
+      const pickupName = typeof pickup === "string" ? pickup : pickup?.name;
       const destinationName =
         typeof destination === "string" ? destination : destination?.name;
-  
+
       setRideData((prev) => ({
         ...prev,
         pickup: pickupName,
         destination: destinationName,
       }));
-  
+
       Setcurentpanel("vehicle");
       setSuggestions([]);
     }
-  
   }, [pickup, destination]);
 
- // yahan pe coords ke basis pe addresh fetch krne ka function
- 
   const fetchAddress = async (coords) => {
     try {
       const token = localStorage.getItem("userToken");
@@ -146,15 +131,11 @@ const Home = () => {
       const addressName = address?.name || address;
 
       setPickupInput(addressName);
-      
-      // store only string
       setPickup(addressName);
     } catch (err) {
       console.error("Reverse geocoding failed", err);
     }
   };
-
-
 
   const debouncedReverseGeocode = useCallback(
     debounce((coords) => {
@@ -170,24 +151,20 @@ const Home = () => {
   }, [debouncedReverseGeocode]);
 
   const handleMapMove = (coords) => {
-    // ye function ko MAPBG se call krna hai jab map move ho aur 
-    //yahan pe check krna hai ki pickup field active hai ya nahi taki jab user pickup field me ho tabhi reverse geocoding ho aur pickup field me address show ho
-
     if (activeField === "pickup" || activeField === null) {
       debouncedReverseGeocode(coords);
     }
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gray-200 font-sans">
+    <div className="relative w-screen h-screen overflow-hidden bg-[#0f172a] text-white font-sans">
+
       {/* LOGO */}
 
-      <div className="absolute top-10 left-6 z-20 p-2 bg-white rounded-full shadow-lg">
-        <img
-          className="w-8"
-          src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
-          alt="Uber"
-        />
+      <div className="absolute top-6 left-6 z-20">
+        <div className="bg-[#121b2d]/90 backdrop-blur-md p-3 rounded-2xl font-extrabold shadow-xl border border-white/5">
+        GoIndia
+        </div>
       </div>
 
       {/* MAP */}
@@ -201,16 +178,18 @@ const Home = () => {
       {currentpanel !== "confirm" && currentpanel !== "lookingForDriver" && (
         <div
           style={{ bottom: positions[sheetPos] }}
-          className="absolute left-0 w-full h-[90%] bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] transition-all duration-500 z-30"
+          className="absolute left-0 w-full h-[90%] bg-[#121b2d]/95 backdrop-blur-2xl rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-t border-white/5 transition-all duration-500 z-30"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
+
           <div className="flex justify-center pt-3 pb-2">
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            <div className="w-12 h-1 bg-gray-600 rounded-full opacity-40"></div>
           </div>
 
           <div className="px-6 py-4">
-            <h2 className="text-2xl font-bold text-gray-800 mb-8 tracking-tight">
+
+            <h2 className="text-2xl font-bold text-white mb-8 tracking-tight">
               Where to?
               {currentpanel !== "location" && (
                 <ArrowLeft
@@ -221,15 +200,19 @@ const Home = () => {
             </h2>
 
             <div className="flex items-start gap-4 relative">
+
               <div className="flex flex-col items-center mt-6">
-                <div className="w-2.5 h-2.5 rounded-full border-2 border-gray-400 bg-white z-10"></div>
 
-                <div className="w-[2px] h-14 border-l-2 border-dotted border-gray-300 my-1"></div>
+                <div className="w-3 h-3 rounded-full border-2 border-blue-400 bg-[#121b2d] z-10"></div>
 
-                <div className="w-2.5 h-2.5 bg-black z-10"></div>
+                <div className="w-[2px] h-14 border-l-2 border-dashed border-gray-600 my-1"></div>
+
+                <div className="w-3 h-3 bg-green-400 rounded-full z-10"></div>
+
               </div>
 
               <div className="flex-1 space-y-3">
+
                 {/* PICKUP */}
 
                 <input
@@ -243,7 +226,7 @@ const Home = () => {
                     debouncedSuggestion(e.target.value);
                   }}
                   placeholder="Current Location"
-                  className="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl"
+                  className="w-full bg-[#1c2943] border border-white/5 p-4 rounded-xl text-white placeholder-gray-400"
                 />
 
                 {/* DESTINATION */}
@@ -259,10 +242,13 @@ const Home = () => {
                     debouncedSuggestion(e.target.value);
                   }}
                   placeholder="Enter destination"
-                  className="w-full bg-gray-100 border border-gray-100 p-4 rounded-xl"
+                  className="w-full bg-[#1c2943] border border-white/5 p-4 rounded-xl text-white placeholder-gray-400"
                 />
+
               </div>
+
             </div>
+
           </div>
 
           {currentpanel === "location" && (
@@ -275,6 +261,7 @@ const Home = () => {
               setDestinationInput={setDestinationInput}
             />
           )}
+
         </div>
       )}
 
@@ -295,6 +282,7 @@ const Home = () => {
           <LookingForDriver />
         </div>
       )}
+
     </div>
   );
 };

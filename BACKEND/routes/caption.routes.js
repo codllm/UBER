@@ -37,6 +37,7 @@ router.post(
     body("vehicle.vehicleType")
       .isIn(["car", "auto", "motorcycle"])
       .withMessage("Invalid vehicle type"),
+      body('contact').isLength({min:10}).isNumeric().withMessage('contact number is required and valid')
   ],
   captionContoller.registerCaption
 );

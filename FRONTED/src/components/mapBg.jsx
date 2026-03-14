@@ -3,20 +3,16 @@ import { GoogleMap, LoadScript } from "@react-google-maps/api";
 
 const MapBg = ({ onLocationChange, currentpanel }) => {
 
-  const darkMapStyle = [
-    { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#000000" }] },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: "#ece75f" }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: "#82C8E5" }],
-    },
-    { featureType: "poi", stylers: [{ visibility: "on" }] },
+  const premiumDarkStyle = [
+    { elementType: "geometry", stylers: [{ color: "#212121" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4b4b4b" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#383838" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#3c3c3c" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#212121" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#000000" }] },
   ];
 
   const mapRef = useRef(null);
@@ -26,9 +22,11 @@ const MapBg = ({ onLocationChange, currentpanel }) => {
     lng: 77.21,
   });
 
-  // Get user location as he logins in the app
+  // Get user location when app loads
   useEffect(() => {
+
     if (navigator.geolocation) {
+
       navigator.geolocation.getCurrentPosition((position) => {
 
         const pos = {
@@ -39,7 +37,9 @@ const MapBg = ({ onLocationChange, currentpanel }) => {
         setCurrentLocation(pos);
 
       });
+
     }
+
   }, []);
 
   // Trigger when map stops moving
@@ -79,7 +79,7 @@ const MapBg = ({ onLocationChange, currentpanel }) => {
           options={{
             disableDefaultUI: true,
             clickableIcons: false,
-            styles: darkMapStyle,
+            styles: premiumDarkStyle,
           }}
           onIdle={handleMapIdle}
         />
@@ -91,17 +91,31 @@ const MapBg = ({ onLocationChange, currentpanel }) => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none z-50 text-center">
 
         {currentpanel === "location" && (
-          <>
-            <div className="bg-white px-2 py-1 text-xs font-semibold rounded shadow mb-1">
+          <div className="flex flex-col items-center">
+
+            {/* Glass pickup label */}
+
+            <div className="bg-[#121b2d]/90 backdrop-blur-md border border-white/10 text-white px-3 py-1 text-xs font-semibold rounded-lg shadow-lg mb-2">
               Pickup
             </div>
 
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
-              alt="pin"
-              className="w-10 h-10 mx-auto"
-            />
-          </>
+            {/* Pin */}
+
+            <div className="relative">
+
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+                alt="pin"
+                className="w-10 h-10 drop-shadow-lg"
+              />
+
+              {/* Pulse ring */}
+
+              <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping"></div>
+
+            </div>
+
+          </div>
         )}
 
       </div>

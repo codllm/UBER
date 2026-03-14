@@ -14,7 +14,8 @@ const CaptainSign = () => {
     color: "",
     plate: "",
     capacity: "",
-    vehicleType: "car",
+    vehicleType: "Motorcycle",
+    contact:"",
   });
 
   const {caption, setCaption} = React.useContext(CaptionDataContext);
@@ -134,6 +135,16 @@ const CaptainSign = () => {
           onChange={handleChange}
         />
 
+        {/* conatct number */}
+         <input
+          name="number"
+          max={10}
+          placeholder="Contact Number"
+          className="w-full bg-gray-100 px-4 py-4 rounded-lg mb-4"
+          value={formData.contact}
+          onChange={handleChange}
+        />
+
         {/* Vehicle Capacity */}
         <input
           type="number"
@@ -151,9 +162,10 @@ const CaptainSign = () => {
           value={formData.vehicleType}
           onChange={handleChange}
         >
-          <option value="car">Car</option>
           <option value="motorcycle">Motorcycle</option>
           <option value="auto">Auto</option>
+          <option value="car">Car</option>
+          
         </select>
 
         {/* Sign up Button */}

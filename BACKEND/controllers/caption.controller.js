@@ -15,7 +15,7 @@ module.exports.registerCaption = async (req,res,next)=>{
     return res.status(400).json({error:error.array()});
   }
 
-  const {fullname,email,password,vehicle} = req.body;
+  const {fullname,email,password,vehicle,contact} = req.body;
   const isCaptionAlredyExists = await captionModel.findOne({
     email
   })
@@ -34,7 +34,8 @@ module.exports.registerCaption = async (req,res,next)=>{
     color:vehicle.color,
     plate:vehicle.plate,
     capacity:vehicle.capacity,
-    vehicleType:vehicle.vehicleType
+    vehicleType:vehicle.vehicleType,
+    contact:contact
   })
 
   const token = caption.generateAuthToken();

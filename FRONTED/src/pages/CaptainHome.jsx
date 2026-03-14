@@ -9,7 +9,6 @@ import MapBg from "../components/mapBg";
 
 const CaptainHome = () => {
 
-  
   const [online, setOnline] = useState(() => {
     return localStorage.getItem("captainOnline") === "true";
   });
@@ -29,13 +28,9 @@ const CaptainHome = () => {
     },
   });
 
-
-
   useEffect(() => {
     localStorage.setItem("captainOnline", online);
   }, [online]);
-
-
 
   useEffect(() => {
     if (caption?.caption?._id) {
@@ -43,8 +38,6 @@ const CaptainHome = () => {
       console.log("Captain registered with socket:", caption.caption._id);
     }
   }, [caption]);
-
-
 
   useEffect(() => {
 
@@ -77,8 +70,6 @@ const CaptainHome = () => {
 
   }, []);
 
-
-
   const getLocation = () => {
     return new Promise((resolve, reject) => {
 
@@ -91,8 +82,6 @@ const CaptainHome = () => {
 
     });
   };
-
-
 
   const captionOnlineLocation = async () => {
 
@@ -131,8 +120,6 @@ const CaptainHome = () => {
 
   };
 
-
-
   useEffect(() => {
 
     let interval;
@@ -156,8 +143,6 @@ const CaptainHome = () => {
     };
 
   }, [online]);
-
-
 
   const saveRideAccepted = async () => {
 
@@ -185,17 +170,20 @@ const CaptainHome = () => {
 
       );
 
+      return true;
+
       console.log("Ride accepted:", res.data);
 
     } catch (err) {
 
       console.error("Accept error:", err.response?.data || err.message);
 
+      return false;
+
     }
 
+
   };
-
-
 
   useEffect(() => {
 
@@ -219,25 +207,21 @@ const CaptainHome = () => {
   }, [rideData]);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gray-200">
+    <div className="relative w-screen h-screen overflow-hidden bg-[#0f172a] text-white">
 
       <MapBg />
 
       {/* ONLINE TOGGLE */}
 
-      <div className="absolute top-10 right-6 bg-white px-5 py-2 rounded-full shadow-lg">
+      <div className="absolute top-6 right-6 bg-[#121b2d]/90 backdrop-blur-md px-5 py-2 rounded-full border border-white/10 shadow-xl">
 
         <button
-
           onClick={() => setOnline((prev) => !prev)}
-
           className={`font-semibold ${
-            online ? "text-green-600" : "text-gray-600"
+            online ? "text-green-400" : "text-gray-400"
           }`}
-
         >
           {online ? "Online" : "Offline"}
-
         </button>
 
       </div>
@@ -246,23 +230,19 @@ const CaptainHome = () => {
 
       {!online && (
 
-        <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-8">
+        <div className="absolute bottom-0 left-0 w-full bg-[#121b2d]/95 backdrop-blur-xl rounded-t-[32px] border-t border-white/5 shadow-2xl px-6 py-8">
 
           <h3 className="text-lg font-semibold mb-3">You're Offline</h3>
 
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-400 mb-6">
             Go online to start receiving ride requests.
           </p>
 
           <button
-
             onClick={() => setOnline(true)}
-
-            className="w-full bg-black text-white py-3 rounded-xl font-semibold"
-
+            className="w-full bg-white text-black py-3 rounded-xl font-semibold"
           >
             Go Online
-
           </button>
 
         </div>
@@ -273,11 +253,11 @@ const CaptainHome = () => {
 
       {online && !rideRequest && (
 
-        <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-8">
+        <div className="absolute bottom-0 left-0 w-full bg-[#121b2d]/95 backdrop-blur-xl rounded-t-[32px] border-t border-white/5 shadow-2xl px-6 py-8">
 
           <div className="flex items-center gap-4 mb-6">
 
-            <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-lg font-semibold capitalize">
+            <div className="w-14 h-14 bg-[#1c2943] rounded-full flex items-center justify-center text-lg font-semibold capitalize">
 
               {caption?.caption?.fullname?.firstname?.charAt(0) || "D"}
 
@@ -291,7 +271,7 @@ const CaptainHome = () => {
 
               </h3>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-400">
 
                 {caption?.caption?.vehicle?.plate || "Vehicle Number"}
 
@@ -301,10 +281,8 @@ const CaptainHome = () => {
 
           </div>
 
-          <div className="text-center text-sm text-gray-500">
-
+          <div className="text-center text-sm text-gray-400">
             Waiting for ride requests...
-
           </div>
 
         </div>
@@ -315,7 +293,7 @@ const CaptainHome = () => {
 
       {online && rideRequest && (
 
-        <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl shadow-lg px-6 py-6">
+        <div className="absolute bottom-0 left-0 w-full bg-[#121b2d]/95 backdrop-blur-xl rounded-t-[32px] border-t border-white/5 shadow-2xl px-6 py-6">
 
           <h3 className="text-lg font-semibold mb-4">New Ride Request</h3>
 
@@ -324,13 +302,9 @@ const CaptainHome = () => {
             <div className="flex items-center gap-3">
 
               <img
-
                 src="https://randomuser.me/api/portraits/men/45.jpg"
-
                 alt="user"
-
                 className="w-12 h-12 rounded-full"
-
               />
 
               <div>
@@ -342,13 +316,13 @@ const CaptainHome = () => {
 
                 </p>
 
-                <p className="text-xs text-gray-500">4.8 ⭐</p>
+                <p className="text-xs text-gray-400">4.8 ⭐</p>
 
               </div>
 
             </div>
 
-            <Phone size={20} />
+            <Phone size={20} className="text-white"/>
 
           </div>
 
@@ -374,7 +348,7 @@ const CaptainHome = () => {
 
           <div className="flex justify-between mb-6">
 
-            <span className="text-sm text-gray-600">Estimated Fare</span>
+            <span className="text-sm text-gray-400">Estimated Fare</span>
 
             <span className="font-semibold text-lg">
 
@@ -387,30 +361,29 @@ const CaptainHome = () => {
           <div className="flex gap-4">
 
             <button
-
               onClick={() => setRideRequest(false)}
-
-              className="flex-1 bg-gray-200 py-3 rounded-xl font-semibold"
-
+              className="flex-1 bg-[#1c2943] py-3 rounded-xl font-semibold"
             >
               Ignore
-
             </button>
 
             <button
-
-              className="flex-1 bg-black text-white py-3 rounded-xl font-semibold"
-
+              className="flex-1 bg-white text-black py-3 rounded-xl font-semibold"
               onClick={async () => {
 
-                await saveRideAccepted();
+                const suceess= await saveRideAccepted();
+                if(suceess){
                 navigate("/captain-arriving");
+                }else{
+                  alert("This ride has already been accepted by another captain!");
+                  setRideRequest(false);
+                  localStorage.removeItem('currentRide');
+
+                }
 
               }}
-
             >
               Accept
-
             </button>
 
           </div>

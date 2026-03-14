@@ -64,6 +64,10 @@ const captionSchema = new mongoose.Schema({
       type: [Number], 
       
     }
+  },
+  contact:{
+    type:Number,
+    required:true
   }
   
 });

@@ -9,15 +9,12 @@ const VehiclePanel = ({ Setcurentpanel }) => {
   const [fares, setFares] = React.useState({});
   const [loading, setLoading] = React.useState(false);
 
-  // 🔥 Fetch all vehicle fares
   React.useEffect(() => {
 
-
-
-
-
     const fetchFares = async () => {
+
       try {
+
         setLoading(true);
 
         const response = await axios.get(
@@ -32,15 +29,19 @@ const VehiclePanel = ({ Setcurentpanel }) => {
             }
           }
         );
-        
 
         setFares(response.data.fare);
 
       } catch (err) {
+
         console.error("Fare fetch error:", err);
+
       } finally {
+
         setLoading(false);
+
       }
+
     };
 
     if (rideData.pickup && rideData.destination) {
@@ -49,7 +50,6 @@ const VehiclePanel = ({ Setcurentpanel }) => {
 
   }, [rideData.pickup, rideData.destination]);
 
-  // 🔥 Vehicle list (NO hardcoded price)
   const vehicles = [
     {
       id: 1,
@@ -81,9 +81,9 @@ const VehiclePanel = ({ Setcurentpanel }) => {
   ];
 
   return (
-    <div className="w-full bg-white py-2 px-3">
+    <div className="w-full bg-[#121b2d]/95 backdrop-blur-xl border-t border-white/5 rounded-t-[40px] px-5 py-5 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] text-white">
 
-      <h3 className="text-2xl font-semibold mb-5">
+      <h3 className="text-2xl font-semibold mb-6">
         Choose a vehicle
       </h3>
 
@@ -99,34 +99,40 @@ const VehiclePanel = ({ Setcurentpanel }) => {
             }));
             Setcurentpanel("confirm");
           }}
-          className="flex w-full items-center justify-between p-3 border-2 border-gray-100 active:border-black rounded-xl mb-2 transition-all cursor-pointer"
+          className="flex w-full items-center justify-between p-4 bg-[#1c2943] border border-white/5 hover:border-white/20 rounded-2xl mb-3 transition-all cursor-pointer"
         >
-          {/* Vehicle Image */}
+
           <img
             className="h-12 w-16 object-contain"
             src={v.image}
             alt={v.name}
           />
 
-          {/* Details */}
-          <div className="ml-2 w-1/2">
-            <h4 className="font-medium text-base">
+          <div className="ml-3 w-1/2">
+
+            <h4 className="font-semibold text-base">
               {v.name}
-              
             </h4>
-            <p className="text-xs text-gray-600">{v.desc}</p>
+
+            <p className="text-xs text-gray-400">
+              {v.desc}
+            </p>
+
           </div>
 
-          {/* Dynamic Price */}
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-bold">
+
             {loading
               ? "..."
               : fares[v.type]
               ? `₹${fares[v.type]}`
               : "--"}
+
           </h2>
+
         </div>
       ))}
+
     </div>
   );
 };
